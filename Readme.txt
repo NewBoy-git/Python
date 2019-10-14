@@ -1,3 +1,7 @@
 first commit testsitecrawlapi,sitecrawlapi1.0
 dev
-master
+<<<<<<< HEAD
+feture1
+=======
+feture1
+>>>>>>> feature1
