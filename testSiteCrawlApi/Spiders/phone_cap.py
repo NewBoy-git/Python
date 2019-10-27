@@ -32,4 +32,15 @@ def phone_search(phone):
     'X-Requested-With':'XMLHttpRequest'
     }
     r = requests.post(url,data=data,headers=headers).text
+    # obj = json.loads(r.encode('utf-8'))
+    # if obj['data']['list'][0].get('name') !=None:
+    #     data = {
+    #         'msg':0,
+    #         'name':obj['data']['list'][0].get('name')
+    #     }
+    # else:
+    #     data = {
+    #         'msg': 600,
+    #         'name': ''
+    #     }
     return r

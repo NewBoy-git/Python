@@ -8,7 +8,7 @@ import json
 import datetime
 
 #第三方包、
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template,copy_current_request_context
 from thrift.transport import TSocket, TTransport
 from thrift.protocol import TBinaryProtocol
 from hbase.Hbase import Client, ColumnDescriptor, Mutation
@@ -21,14 +21,13 @@ from Spiders.ymdd_dxcspider import ymdd_spider,ymddpart
 from Spiders.baishi_dxcspider import baishi_spider
 # from Spiders.an_slider import an_spider
 from HbaseHandler.operateHbase import save_to_hbase,select_before,select_from_hbase
-from MysqlHandler.status_table import update_status
+from MysqlHandler.status_table import update_status,acquire_status
 from Spiders.bdjs import baidu_search
 from Spiders.phone_cap import phone_search
 # from Spiders.yunda_spider import yunda_spider
 from Spiders.anlb_dxc_spider import lb_spider,CrackSlider
-# from Spiders.anlb_ybspider import CrackSlider,lb_spider
 
-from Spiders.jd_dxc_spider import jd_login,jd_spider
+from Spiders.jieda_ybdxcspider import jd_login,jd_spider
 import calendar
 
 
@@ -38,6 +37,8 @@ executor = ThreadPoolExecutor(1)
 
 
 app=Flask(__name__)
+
+
 
 error_msg = {"msg": "", "code": 600}
 
@@ -58,6 +59,8 @@ def crawl():
                 password = obj['password']
                 userid = obj['userId']
                 company = obj['entType']
+                requesttype = obj['requestType']
+
         #         results = select_before(userid,company)
         #         if results:
         #            result = json.loads(results[0].columns.get('info:current').value)
@@ -74,20 +77,36 @@ def crawl():
         #         data = c.crack_slider(username,password)
                 c = CrackSlider()
                 cookies_item = c.crack_slider(username, password)
-                try:
-                    if cookies_item['code'] == 0:
-                        update_status(userid, company, waiting_status)
-                        executor.submit(crawlan, userid, company)
-                        suc_msg = {"msg": "", "code": 0}
-                        return jsonify(suc_msg)
-                    else:
+                if requesttype == 'UPGRADE_QUOTA':
+                    try:
+                        if cookies_item['code'] == 0:
+                            update_status(userid, company, waiting_status)
+                            executor.submit(crawlan, userid, company,requesttype)
+                            suc_msg = {"msg": "", "code": 0}
+                            return jsonify(suc_msg)
+                        else:
+                            err_msg = {"msg": "", "code": 600}
+                            return jsonify(err_msg)
+
+                    except Exception as e:
+                        print(e)
                         err_msg = {"msg": "", "code": 600}
                         return jsonify(err_msg)
+                else:
+                    try:
+                        if cookies_item['code'] == 0:
+                            acquire_status(userid, company, waiting_status)
+                            executor.submit(crawlan, userid, company,requesttype)
+                            suc_msg = {"msg": "", "code": 0}
+                            return jsonify(suc_msg)
+                        else:
+                            err_msg = {"msg": "", "code": 600}
+                            return jsonify(err_msg)
 
-                except Exception as e:
-                    print(e)
-                    err_msg = {"msg": "", "code": 600}
-                    return jsonify(err_msg)
+                    except Exception as e:
+                        print(e)
+                        err_msg = {"msg": "", "code": 600}
+                        return jsonify(err_msg)
         #         err_msg = {"msg": "", "code": 600}
         #         return jsonify(err_msg)
         #         data = lb_spider(username,password)
@@ -113,35 +132,59 @@ def crawl():
                 userid = obj['userId']
                 company = obj['entType']
                 com = obj['district']
+                requesttype = obj['requestType']
                 ymdd_data = ymdd_spider(username,password,com)
                 if ymdd_data['code'] == 600:
                     return jsonify(ymdd_data)
-                #print(ymdd_data)
-                ymdd_data['userid'] = userid
-                ymdd_data['company'] = company
-                try:
-                    # transport.open()
-                    # row = str(userid)+company
-                    # mutations = [Mutation(column="info:current", value=json.dumps(ymdd_data))]2
-                    # client.mutateRow(table, row, mutations)
-                    # transport.close()
-                    save_to_hbase(userid,company,ymdd_data)
-                    suc_msg = {
-                    "msg":"",
-                    "code":0,
-                     }
-                    update_status(userid,company,success_status)
-                    return jsonify(suc_msg)
-                except Exception as e:
-                     print(e)
-                     update_status(userid, company, fail_status)
-                     error_hbase = {"msg":"","code":600}
-                     return jsonify(error_hbase)
+                if requesttype == "UPGRADE_QUOTA":
+                    ymdd_data['userid'] = userid
+                    ymdd_data['company'] = company
+                    try:
+                        # transport.open()
+                        # row = str(userid)+company
+                        # mutations = [Mutation(column="info:current", value=json.dumps(ymdd_data))]2
+                        # client.mutateRow(table, row, mutations)
+                        # transport.close()
+                        save_to_hbase(userid,company,ymdd_data)
+                        suc_msg = {
+                        "msg":"",
+                        "code":0,
+                         }
+                        update_status(userid, company, success_status)
+                        return jsonify(suc_msg)
+                    except Exception as e:
+                         print(e)
+                         update_status(userid, company, fail_status)
+                         error_hbase = {"msg":"","code":600}
+                         return jsonify(error_hbase)
+                else:
+                    ymdd_data['userid'] = userid
+                    ymdd_data['company'] = company
+                    try:
+                        # transport.open()
+                        # row = str(userid)+company
+                        # mutations = [Mutation(column="info:current", value=json.dumps(ymdd_data))]2
+                        # client.mutateRow(table, row, mutations)
+                        # transport.close()
+                        save_to_hbase(userid, company, ymdd_data)
+                        suc_msg = {
+                            "msg": "",
+                            "code": 0,
+                        }
+                        acquire_status(userid, company, success_status)
+                        return jsonify(suc_msg)
+                    except Exception as e:
+                        print(e)
+                        acquire_status(userid, company, fail_status)
+                        error_hbase = {"msg": "", "code": 600}
+                        return jsonify(error_hbase)
+
         if obj['entType'] == 'BAI_SHI':
             username = obj['userName']
             password = obj['password']
             userid = obj['userId']
             company = obj['entType']
+            requesttype = obj['requestType']
             # transport.open()
             # results = client.getRow('crawler:test_logistics_member_info',str(userid)+obj['entType'])
             # transport.close()
@@ -163,17 +206,32 @@ def crawl():
             baishi_data = baishi_spider(username,password)
             if baishi_data['code'] == 600:
                 return jsonify(baishi_data)
-            baishi_data['userid'] = userid
-            baishi_data['company'] = company
-            try:
-                suc_msg = save_to_hbase(userid,company,baishi_data)
-                update_status(userid, company, fail_status)
-                return jsonify(suc_msg)
-            except Exception as e:
-                update_status(userid, company, fail_status)
-                print(e)
-                error_hbase = {"msg":"","code":"600"}
-                return jsonify(error_hbase)
+
+            if requesttype == 'UPGRADE_QUOTA':
+                baishi_data['userid'] = userid
+                baishi_data['company'] = company
+                try:
+                    suc_msg = save_to_hbase(userid,company,baishi_data)
+                    update_status(userid, company, success_status)
+                    return jsonify(suc_msg)
+                except Exception as e:
+                    update_status(userid, company, fail_status)
+                    print(e)
+                    error_hbase = {"msg":"","code":"600"}
+                    return jsonify(error_hbase)
+            else:
+                baishi_data['userid'] = userid
+                baishi_data['company'] = company
+                try:
+                    suc_msg = save_to_hbase(userid, company, baishi_data)
+                    acquire_status(userid, company, success_status)
+                    return jsonify(suc_msg)
+                except Exception as e:
+                    acquire_status(userid, company, fail_status)
+                    print(e)
+                    error_hbase = {"msg": "", "code": "600"}
+                    return jsonify(error_hbase)
+
         if obj['entType'] == 'YUN_DA':
             username = obj['userName']
             password = obj['password']
@@ -211,60 +269,126 @@ def crawl():
             password = obj['password']
             userid = obj['userId']
             company = obj['entType']
+            requesttype = obj['requestType']
             cookie_item = jd_login(username, password)
-            try:
-                if cookie_item['code'] == 0:
-                    executor.submit(crawljd, userid, company)
-                    suc_msg = {"msg": "", "code": 0}
-                    return jsonify(suc_msg)
-            except Exception as e:
-                print(e)
-                err_msg = {"msg": "", "code": 600}
-                return jsonify(err_msg)
-            err_msg = {"msg": "", "code": 600}
-            return jsonify(err_msg)
+            if requesttype == 'UPGRADE_QUOTA':
+                try:
+                    if cookie_item['code'] == 0:
+                        update_status(userid, company, waiting_status)
+                        executor.submit(crawljd, userid, company)
+                        suc_msg = {"msg": "", "code": 0}
+                        return jsonify(suc_msg)
+                    else:
+                        return jsonify(error_msg)
+                except Exception as e:
+                    print(e)
+                    err_msg = {"msg": "", "code": 600}
+                    return jsonify(err_msg)
+            else:
+                try:
+                    if cookie_item['code'] == 0:
+                        acquire_status(userid, company, waiting_status)
+                        executor.submit(crawljd, userid, company,requesttype)
+                        suc_msg = {"msg": "", "code": 0}
+                        return jsonify(suc_msg)
+                    else:
+                        return jsonify(error_msg)
+                except Exception as e:
+                    print(e)
+                    err_msg = {"msg": "", "code": 600}
+                    return jsonify(err_msg)
 
-def crawljd(userid,company):
-    app.app_context().push()
-    # sta = time.time()
-    item = jd_spider(userid,company)
-    print(item)
-    # end = time.time()
-    # print(end-sta)
-    try:
-        if item['code'] == 0:
-            suc_msg = save_to_hbase(userid,company,item)
-            print('****************************************************')
-            print(suc_msg)
-            return jsonify(suc_msg)
-        else:
-            return jsonify(error_msg)
-    except Exception as e:
-        print(e)
-        error_hbase = {"msg": "", "code": 600}
-        return jsonify(error_hbase)
 
-def crawlan(userid,company):
+def crawljd(userid,company,requesttype):
     with app.app_context():
+        if requesttype == 'UPGRADE_QUOTA':
+            try:
+                sta1 = datetime.datetime.now()
+                item = jd_spider(userid, company)
+                sta2 = datetime.datetime.now()
+                suc_msg = save_to_hbase(userid,company,item)
+                end = datetime.datetime.now()
+                print('入库总耗时:{}'.format(end - sta2))
+                print('流程总耗时:{}'.format(end - sta1))
+                print('****************************************************')
+                update_status(userid, company, success_status)
+                print(suc_msg)
+            except Exception as e:
+                if 'Working outside of request context' not in str(e):
+                    update_status(userid, company, fail_status)
+                    print(str(e))
+                    print('************************')
+                    # error_hbase = {"msg":"","code":600}
+                    # return jsonify(error_hbase)
+                else:
+                    print(str(e))
+        else:
+            try:
+                sta1 = datetime.datetime.now()
+                item = jd_spider(userid, company)
+                sta2 = datetime.datetime.now()
+                suc_msg = save_to_hbase(userid,company,item)
+                end = datetime.datetime.now()
+                print('入库总耗时:{}'.format(end - sta2))
+                print('流程总耗时:{}'.format(end - sta1))
+                print('****************************************************')
+                acquire_status(userid, company, success_status)
+                print(suc_msg)
+            except Exception as e:
+                if 'Working outside of request context' not in str(e):
+                    acquire_status(userid, company, fail_status)
+                    print(str(e))
+                    print('************************')
+                    # error_hbase = {"msg":"","code":600}
+                    # return jsonify(error_hbase)
+                else:
+                    print(str(e))
 
-    # sec = datetime.time().now()
-        item=lb_spider(userid,company)
-        # end = datetime.time().now()
-        # print('采集总耗时',end-sec)
-        # userid = item['userid']
-        # company = item['company']
-        try:
-            sta1 = datetime.datetime.now()
-            suc_msg = save_to_hbase(userid,company,item)
-            end = datetime.datetime.now()
-            print('入库总耗时:{}'.format(end-sta1))
-            print('流程总耗时:{}'.format(end-sta1))
-            update_status(userid, company, success_status)
-            return jsonify(suc_msg)
-        except Exception as e:
-            print(e)
-            error_hbase = {"msg":"","code":600}
-            return jsonify(error_hbase)
+
+# @copy_current_request_context
+# with app.app_context():
+#     print(app.name)
+def crawlan(userid,company,requesttype):
+    with app.app_context():
+        if requesttype == 'UPGRADE_QUOTA':
+            try:
+                item = lb_spider(userid, company)
+                sta1 = datetime.datetime.now()
+                suc_msg = save_to_hbase(userid,company,item)
+                end = datetime.datetime.now()
+                print('入库总耗时:{}'.format(end-sta1))
+                print('流程总耗时:{}'.format(end-sta1))
+                update_status(userid, company, success_status)
+                return jsonify(suc_msg)
+            except Exception as e:
+                if 'Working outside of request context' not in str(e):
+                    update_status(userid, company, fail_status)
+                    print(str(e))
+                    print('************************')
+                    # error_hbase = {"msg":"","code":600}
+                    # return jsonify(error_hbase)
+                else:
+                    print(str(e))
+        else:
+            try:
+                sta1 = datetime.datetime.now()
+                item = lb_spider(userid, company)
+                sta2 = datetime.datetime.now()
+                suc_msg = save_to_hbase(userid, company, item)
+                end = datetime.datetime.now()
+                print('入库总耗时:{}'.format(end - sta2))
+                print('流程总耗时:{}'.format(end - sta1))
+                acquire_status(userid, company, success_status)
+                return jsonify(suc_msg)
+            except Exception as e:
+                if 'Working outside of request context' not in str(e):
+                    update_status(userid, company, fail_status)
+                    print(str(e))
+                    print('************************')
+                    # error_hbase = {"msg":"","code":600}
+                    # return jsonify(error_hbase)
+                else:
+                    print(str(e))
 
 
 
@@ -284,6 +408,7 @@ def select():
         item['siteName'] = result['site_name']
         item['siteType'] = result['site_type']
         item['siteId'] = result['site_id']
+        item['siteCode'] = result.get('siteCode')
         item['company'] = result['company']
         item['userId'] = result['userid']
         item['crawlTime'] = result['crawl_time']
@@ -291,9 +416,26 @@ def select():
         item['busidetailByMonth'] = result['BusiDetailByMonth']
         item['sendfirstBusiDetailSummaryVo'] = result['sendBusiDetailSummaryVo']['data']
         #item['receiveBusiDetailSummaryVo'] = result['receiveBusiDetailSummaryVo']
-        item['sendfirstfineBusiDetailSummaryVo'] = result.get('sendfineBusiDetailSummaryVo')
-        item['receivefirstfineBusiDetailSummaryVo'] = result.get('receivefineBusiDetailSummaryVo')
-        item['allfineBusiDetailSummaryVo'] = result.get('allfineBusiDetailSummaryVo')
+
+        item['sendfirstfineBusiDetailSummaryVoList'] = result.get('sendfineBusiDetailSummaryVoList')
+        item['receivefirstfineBusiDetailSummaryVoList'] = result.get('receivefineBusiDetailSummaryVoList')
+        item['allfineBusiDetailSummaryVoList'] = result.get('allfineBusiDetailSummaryVoList')
+
+        if  result.get('sendfineBusiDetailSummaryVo'):
+            item['sendfirstfineBusiDetailSummaryVo'] = result.get('sendfineBusiDetailSummaryVo').get('data')
+        else:
+            item['sendfirstfineBusiDetailSummaryVo'] = result.get('sendfineBusiDetailSummaryVo')
+
+        if result.get('receivefineBusiDetailSummaryVo'):
+            item['receivefirstfineBusiDetailSummaryVo'] = result.get('receivefineBusiDetailSummaryVo').get('data')
+        else:
+            item['receivefirstfineBusiDetailSummaryVo'] = result.get('receivefineBusiDetailSummaryVo')
+
+        if result.get('allfineBusiDetailSummaryVo'):
+            item['allfineBusiDetailSummaryVo'] = result.get('allfineBusiDetailSummaryVo').get('data')
+        else:
+            item['allfineBusiDetailSummaryVo'] = result.get('allfineBusiDetailSummaryVo')
+
         item['userList'] = result['getUser']['data']['rows']
         item['ywList'] = result.get('yw_list')
         item['username'] = result.get('user')
@@ -339,6 +481,7 @@ def select():
         item['thismonthendsyesterdayBusiQuery'] = ThismonthendsyesterdayBusiQuery
         item['code']=0
         return jsonify(item)
+        # return jsonify(result)
 
     if 'YI_MI_DI_DA' in userid:
         results = select_from_hbase(userid)

@@ -1098,7 +1098,9 @@ class N(threading.Thread):
         }
 
         search_r = requests.post(zk_url, data=data_search, headers=headers2).text
-
+        date_body = r'\d+-\d+-\d+ \d+:\d+:\d+'
+        date_pattern = re.compile(date_body)
+        franchisetime = re.findall(date_pattern, search_r)[1]
         # print(search_r)
         value_body = "{value:'(.*?)'}"
 
@@ -1106,7 +1108,8 @@ class N(threading.Thread):
         value_list = re.findall(value_pattern, search_r)
         print('***********',value_list)
         gLock.acquire()
-        item['franchisetime'] = value_list[11]
+        item['franchisetime'] = franchisetime
+        item['siteCode'] = value_list[5]
         gLock.release()
         # desired_capabilities = DesiredCapabilities.CHROME  # 修改页面加载策略
         # desired_capabilities["pageLoadStrategy"] = "none"  # 注释这两行会导致最后输出结果的延迟，即等待页面加载完成再输出
@@ -1206,8 +1209,18 @@ class C(threading.Thread):
             'siteId': '',
         }
         jr_qk = json.loads(requests.post(mjy_url, data=data, headers=cookies_item['jscookies']).text)
+        BusiDetailByMonth = jr_qk['data']
+        if len(BusiDetailByMonth)<12:
+            print(len(BusiDetailByMonth))
+            over_month = 12 - len(BusiDetailByMonth)
+            for i in range(over_month):
+                bus_item = {}
+                bus_item['index'] = i
+                bus_item['sendFee'] = 0
+                bus_item['deliveryFee'] = 0
+                BusiDetailByMonth.append(bus_item)
         gLock.acquire()
-        item['BusiDetailByMonth'] = jr_qk['data']
+        item['BusiDetailByMonth'] = BusiDetailByMonth
         gLock.release()
 
 
@@ -1255,47 +1268,69 @@ class G(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        year = datetime.datetime.now().year
+        month = datetime.datetime.now().month
+        date_list1 = []
+        date_list6 = []
+        for m in range(1, month):
+            d = calendar.monthrange(year, m)
+            date_list1.append(([year, m, d[1]]))
+        date_list3 = []
+        date_list9 = []
+        for n in range(month, 13):
+            d = calendar.monthrange(year - 1, n)
+            date_list3.append([year - 1, n, d[1]])
+        ywdateend_list = sorted(date_list3 + date_list1, reverse=True)
+        fk_list = []
         site_info = json.loads(requests.post(aut_url, headers=cookies_item['jscookies']).text)
-        data_send = {
-            'page': '1',
-            'pageSize': '50',
-            'bol': '0',
-            'loginSiteId': '',
-            'isEwbNo': 'false',
-            'orderNos': '',
-            'radioDate': '0',
-            'isFill': 'false',
-            'isFillNo': 'false',
-            'startTime': '{}/{}/1 00:00:00'.format(year - 1, month),
-            'endTime': '{}/{}/{} 23:59:59'.format(year, month - 1, monthRange),
-            'accountId': '',
-            'depositSiteId': '1617',
-            'depositSiteName': '直营财务中心',
-            'siteId': site_info['data']['siteVO']['siteId'],
-            'siteName': site_info['data']['siteVO']['siteName'],
-            'siteId1': '0',
-            'siteName1': '',
-            'accountType': '10',
-            'accountStatus': '',
-            'hedgeFlag': '',
-            'transactionType': '',
-            'chargeItemId': '',
-            'validFlag': '',
-            'dataSource': '',
-            'sendSiteId': site_info['data']['siteVO']['siteId'],
-            'sendSiteName': site_info['data']['siteVO']['siteName'],
-            'signSiteId': '',
-            'signSiteName': '',
-            'firstDeposit[siteId]': '1617',
-            'firstDeposit[siteName]': '直营财务中心',
-            'firstSite[siteName]': site_info['data']['siteVO']['siteName'],
-            'firstSite[siteId]': site_info['data']['siteVO']['siteId'],
-            'ewbNoType': '',
-            'parentChargeItemId': '176',
-        }
-        gLock.acquire()
-        item['sendBusiDetailSummaryVo'] = json.loads(
+        for date in ywdateend_list:
+            data_send = {
+                'page': '1',
+                'pageSize': '50',
+                'bol': '0',
+                'loginSiteId': '',
+                'isEwbNo': 'false',
+                'orderNos': '',
+                'radioDate': '0',
+                'isFill': 'false',
+                'isFillNo': 'false',
+                'startTime': '{}/{}/1 00:00:00'.format(date[0], date[1]),
+                'endTime': '{}/{}/{} 23:59:59'.format(date[0],date[1],date[2]),
+                'accountId': '',
+                'depositSiteId': '1617',
+                'depositSiteName': '直营财务中心',
+                'siteId': site_info['data']['siteVO']['siteId'],
+                'siteName': site_info['data']['siteVO']['siteName'],
+                'siteId1': '0',
+                'siteName1': '',
+                'accountType': '10',
+                'accountStatus': '',
+                'hedgeFlag': '',
+                'transactionType': '',
+                'chargeItemId': '',
+                'validFlag': '',
+                'dataSource': '',
+                'sendSiteId': site_info['data']['siteVO']['siteId'],
+                'sendSiteName': site_info['data']['siteVO']['siteName'],
+                'signSiteId': '',
+                'signSiteName': '',
+                'firstDeposit[siteId]': '1617',
+                'firstDeposit[siteName]': '直营财务中心',
+                'firstSite[siteName]': site_info['data']['siteVO']['siteName'],
+                'firstSite[siteId]': site_info['data']['siteVO']['siteId'],
+                'ewbNoType': '',
+                'parentChargeItemId': '176',
+            }
+
+            fh_item['busiDetailSummaryVo'] = json.loads(
             requests.post(fhf_url, data=data_send, headers=cookies_item['jscookies']).text)
+            if len(str(date[1]))<2:
+                fk_item['date'] = "{}-0{}".format(date[0],date[1])
+            else:
+                fk_item['date'] = "{}-{}".format(date[0],date[1])
+            fk_list.append(fk_item)
+        gLock.acquire()
+        item['sendBusiDetailSummaryVo'] = fk_list
         gLock.release()
 
 
@@ -1416,7 +1451,7 @@ class H(threading.Thread):
                 fk_item['date'] = "{}-{}".format(date[0],date[1])
             fk_list.append(fk_item)
         gLock.acquire()
-        item['sendfineBusiDetailSummaryVo'] = fk_list
+        item['sendfineBusiDetailSummaryVoList'] = fk_list
         gLock.release()
 
 
@@ -1487,7 +1522,7 @@ class I(threading.Thread):
                 fk_item['date'] = "{}-{}".format(date[0],date[1])
             fk_list.append(fk_item)
         gLock.acquire()
-        item['receivefineBusiDetailSummaryVo'] = fk_list
+        item['receivefineBusiDetailSummaryVoList'] = fk_list
         gLock.release()
 
 
@@ -1558,7 +1593,7 @@ class J(threading.Thread):
                 fk_item['date'] = "{}-{}".format(date[0],date[1])
             fk_list.append(fk_item)
         gLock.acquire()
-        item['allfineBusiDetailSummaryVo'] = fk_list
+        item['allfineBusiDetailSummaryVoList'] = fk_list
         gLock.release()
 
 

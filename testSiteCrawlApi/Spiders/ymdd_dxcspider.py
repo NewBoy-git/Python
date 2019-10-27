@@ -32,6 +32,8 @@ fjl_url = 'https://yh.yimidida.com/galaxy-bdi-business/deptUpgradeKanban/outPut/
 
 monthwigth_url = 'https://yh.yimidida.com/galaxy-bdi-business/deptManage/volumnAndIncomeSumPerMonth.do?type=1&month={}&dept_code={}'
 
+ps_url = 'https://yh.yimidida.com/galaxy-bdi-business/deptManage/volumnAndIncomeSumPerDay.do?type=1&month={}&dept_code={}'
+
 deptinfo_url = 'https://yh.yimidida.com/galaxy-base-ext-business/sys/dept/info/queryDeptInfo?deptTypes=0,1,2,3,4,7,8&column24=9&currentPage=1&deptCode={}'
 
 year = datetime.datetime.now().year
@@ -52,7 +54,8 @@ for n in range(month, 13):
     else:
         FORMAT = "%d-%d"
         date_list3.append(FORMAT % (year-1, n))
-date_list = date_list1 + date_list3
+date_list = sorted(date_list1 + date_list3,reverse=True)
+
 
 def ymddpart():
     r = requests.get(type_url).text
@@ -213,9 +216,7 @@ class F(threading.Thread):
             'dept_code': cookies_item['cookies']['DeptCode'],
         }
         dy_fjl = json.loads(requests.post(fjl_url, data=json.dumps(site_Pyload), headers=headers, cookies=cookies_item['cookies']).text)
-        site_name = dy_fjl['data']['dept_name']
         gLock.acquire()
-        item_listall['site_name'] = site_name
         item_listall['biDeptQualityControlInfo'] = dy_fjl['data']
         item_listall['crawl_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         item_listall['code'] = 0
@@ -246,6 +247,7 @@ class B(threading.Thread):
         deptinfo_r = json.loads(requests.get(deptinfo_url.format(cookies_item['cookies']['DeptCode']),headers=headers,cookies=cookies_item['cookies']).text)
         gLock.acquire()
         item_listall['deptinfo'] = deptinfo_r['data']['records'][0]
+        item_listall['site_name'] = deptinfo_r['data']['records'][0]['deptName']
         gLock.release()
 
 
@@ -264,6 +266,25 @@ class C(threading.Thread):
         gLock.release()
 
 
+class D(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+    def run(self):
+        ps_list = []
+        for date in date_list:
+            item = {}
+            dayps_r = json.loads(requests.get(ps_url.format(date,cookies_item['cookies']['DeptCode']),headers=headers, cookies=cookies_item['cookies']).text)
+            item['date'] = date
+            item['incomeSumPerDay'] = dayps_r['data']['result']
+            ps_list.append(item)
+
+
+
+        gLock.acquire()
+        item_listall['volumnAndIncomeSumPerDay'] = ps_list
+        gLock.release()
+
+
 
 
 
@@ -278,6 +299,8 @@ def ymdd_spider(username,password,com):
         t2.start()
         t3 = C()
         t3.start()
+        t5 = D()
+        t5.start()
         # t3 = C()
         # t3.start()
         # t4 = D()
@@ -291,7 +314,7 @@ def ymdd_spider(username,password,com):
         t3.join()
         # t3.join()
         # t4.join()
-        # t5.join()
+        t5.join()
         t6.join()
         return item_listall
     else:
