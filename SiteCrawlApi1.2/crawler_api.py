@@ -181,7 +181,7 @@ def crawl():
             # transport.open()
             # results = client.getRow('crawler:test_logistics_member_info',str(userid)+obj['entType'])
             # transport.close()
-            results = select_before(userid, company)
+            # results = select_before(userid, company)
             # if results:
             #    result = json.loads(results[0].columns.get('info:current').value)
             #    crawl_time = result.get('crawl_time')
