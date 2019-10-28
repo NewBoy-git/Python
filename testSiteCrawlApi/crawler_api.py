@@ -12,7 +12,6 @@ from flask import Flask, jsonify, request
 from concurrent.futures import ThreadPoolExecutor
 # from gevent.monkey import patch_all
 
-
 #模块自身包
 from Spiders.ymdd_dxcspider import ymdd_spider,ymddpart
 from Spiders.baishi_dxcspider import baishi_spider
@@ -20,11 +19,8 @@ from HbaseHandler.operateHbase import save_to_hbase,select_before,select_from_hb
 from MysqlHandler.status_table import update_status,acquire_status
 from Spiders.bdjs import baidu_search
 from Spiders.phone_cap import phone_search
-# from Spiders.yunda_spider import yunda_spider
 from Spiders.anlb_dxc_spider import lb_spider,CrackSlider
 from Spiders.jieda_ybdxcspider import jd_login,jd_spider
-
-import calendar
 
 
 # patch_all()
