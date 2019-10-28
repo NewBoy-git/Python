@@ -8,28 +8,19 @@ import json
 import datetime
 
 #第三方包、
-from flask import Flask, jsonify, request, render_template,copy_current_request_context
-from thrift.transport import TSocket, TTransport
-from thrift.protocol import TBinaryProtocol
-from hbase.Hbase import Client, ColumnDescriptor, Mutation
+from flask import Flask, jsonify, request
 from concurrent.futures import ThreadPoolExecutor
 # from gevent.monkey import patch_all
-
 
 #模块自身包
 from Spiders.ymdd_dxcspider import ymdd_spider,ymddpart
 from Spiders.baishi_dxcspider import baishi_spider
-# from Spiders.an_slider import an_spider
 from HbaseHandler.operateHbase import save_to_hbase,select_before,select_from_hbase
 from MysqlHandler.status_table import update_status,acquire_status
 from Spiders.bdjs import baidu_search
 from Spiders.phone_cap import phone_search
-# from Spiders.yunda_spider import yunda_spider
 from Spiders.anlb_dxc_spider import lb_spider,CrackSlider
-
 from Spiders.jieda_ybdxcspider import jd_login,jd_spider
-import calendar
-
 
 # patch_all()
 
@@ -149,7 +140,7 @@ def crawl():
                         suc_msg = {
                         "msg":"",
                         "code":0,
-                         }
+                        }
                         update_status(userid, company, success_status)
                         return jsonify(suc_msg)
                     except Exception as e:
