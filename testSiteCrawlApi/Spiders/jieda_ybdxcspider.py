@@ -2,10 +2,6 @@ import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
-from lxml import etree
 import json
 import datetime
 import calendar
@@ -15,7 +11,6 @@ from lxml import etree
 # from HbaseHandler.operateHbase import save_to_hbase
 
 import threading
-
 import re
 
 
