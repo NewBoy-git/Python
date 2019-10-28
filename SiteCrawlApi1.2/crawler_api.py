@@ -16,16 +16,13 @@ from concurrent.futures import ThreadPoolExecutor
 #模块自身包
 from Spiders.ymdd_dxcspider import ymdd_spider,ymddpart
 from Spiders.baishi_dxcspider import baishi_spider
-# from Spiders.an_slider import an_spider
 from HbaseHandler.operateHbase import save_to_hbase,select_before,select_from_hbase
 from MysqlHandler.status_table import update_status,acquire_status
-from Spiders.bdjs import baidu_search
-from Spiders.phone_cap import phone_search
-# from Spiders.yunda_spider import yunda_spider
+
 from Spiders.anlb_dxc_spider import lb_spider,CrackSlider
-# from Spiders.anlb_ybspider import CrackSlider,lb_spider
 
 from Spiders.jd_dxc_spider import jd_login,jd_spider
+
 import calendar
 
 
