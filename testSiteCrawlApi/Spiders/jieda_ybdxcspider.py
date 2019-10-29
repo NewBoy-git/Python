@@ -12,8 +12,7 @@ from lxml import etree
 
 import threading
 import re
-# test master
-#test dev
+
 
 item_all = {}
 ztList = []
