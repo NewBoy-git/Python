@@ -8,7 +8,7 @@ import json
 import datetime
 
 #第三方包、
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request,Blueprint
 from concurrent.futures import ThreadPoolExecutor
 # from gevent.monkey import patch_all
 
@@ -31,10 +31,10 @@ import calendar
 executor = ThreadPoolExecutor(1)
 
 
-app=Flask(__name__)
+# blue = Blueprint('crawler_logistics',__name__)
+app = Flask(__name__)
 
 error_msg = {"msg": "", "code": 600}
-
 success_status = "SUCCEED"
 fail_status = "FAILED"
 waiting_status = "WAITING"
