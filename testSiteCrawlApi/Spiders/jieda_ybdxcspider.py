@@ -138,17 +138,10 @@ class A(threading.Thread):
         pattern_search = re.compile(search_body)
         search_code = re.findall(pattern_search,yw_res)[0]
 
-
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
-        date_list1 = []
-        for m in range(1, month):
-            d = calendar.monthrange(year, m)
-            date_list1.append(([year, m, d[1]]))
-        date_list3 = []
-        for n in range(month, 13):
-            d = calendar.monthrange(year - 1, n)
-            date_list3.append([year - 1, n, d[1]])
+        date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
+        date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
         ywdateend_list = date_list1 + date_list3
         print(ywdateend_list)
 
@@ -435,16 +428,8 @@ class B(threading.Thread):
 
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
-        date_list1 = []
-        # date_list6 = []
-        for m in range(1, month):
-            d = calendar.monthrange(year, m)
-            date_list1.append(([year, m, d[1]]))
-        date_list3 = []
-        # date_list9 = []
-        for n in range(month, 13):
-            d = calendar.monthrange(year - 1, n)
-            date_list3.append([year - 1, n, d[1]])
+        date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
+        date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
         ywdateend_list = date_list1 + date_list3
         print(ywdateend_list)
 
@@ -806,20 +791,13 @@ class D(threading.Thread):
         enddate_code = re.findall(pattern_end,hzzd_r)[0]
         print('zcfk************************************')
 
-        sta = time.time()
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
-        date_list1 = []
-        date_list6 = []
-        for m in range(1, month):
-            d = calendar.monthrange(year, m)
-            date_list1.append(([year, m, d[1]]))
-        date_list3 = []
-        date_list9 = []
-        for n in range(month, 13):
-            d = calendar.monthrange(year - 1, n)
-            date_list3.append([year - 1, n, d[1]])
+        date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
+        date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
         ywdateend_list = date_list1 + date_list3
+        print(ywdateend_list)
+
         list = []
         for date in ywdateend_list:
             item = {}
@@ -1134,20 +1112,12 @@ class F(threading.Thread):
         print(dateend_code)
         print(datesea_code)
 
-
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
-        date_list1 = []
-        # date_list6 = []
-        for m in range(1, month):
-            d = calendar.monthrange(year, m)
-            date_list1.append(([year, m, d[1]]))
-            date_list3 = []
-        # date_list9 = []
-        for n in range(month, 13):
-            d = calendar.monthrange(year - 1, n)
-            date_list3.append([year - 1, n, d[1]])
-            ywdateend_list = date_list1 + date_list3
+        date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
+        date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
+        ywdateend_list = date_list1 + date_list3
+        print(ywdateend_list)
 
         yjyfkList = []
         for date in ywdateend_list:
@@ -1301,19 +1271,13 @@ class G(threading.Thread):
         r = requests.post(zk_url, data=site_data, headers=site_headers).text
         # print(r)
         print('ztpsf*******************************************************')
+
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
-        date_list1 = []
-        # date_list6 = []
-        for m in range(1, month):
-            d = calendar.monthrange(year, m)
-            date_list1.append(([year, m, d[1]]))
-            date_list3 = []
-        # date_list9 = []
-        for n in range(month, 13):
-            d = calendar.monthrange(year - 1, n)
-            date_list3.append([year - 1, n, d[1]])
-            ywdateend_list = date_list1 + date_list3
+        date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
+        date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
+        ywdateend_list = date_list1 + date_list3
+        print(ywdateend_list)
 
         ztyfkList = []
         for date in ywdateend_list:
