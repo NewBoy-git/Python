@@ -32,18 +32,10 @@ zk_url = 'http://sxne.sxjdfreight.com/zkau'
 FORMAT = "%d-%d-%d"
 year = datetime.datetime.now().year
 month = datetime.datetime.now().month
-date_list1 = []
-date_list6 = []
-for m in range(1, month):
-    d = calendar.monthrange(year, m)
-    date_list1.append(FORMAT % (year, m, d[1]))
-    date_list6.append(FORMAT % (year, m, 1))
-date_list3 = []
-date_list9 = []
-for n in range(month, 13):
-    d = calendar.monthrange(year - 1, n)
-    date_list3.append(FORMAT % (year - 1, n, d[1]))
-    date_list9.append(FORMAT % (year-1, n, 1))
+date_list1 = [FORMAT % (year, m, calendar.monthrange(year, m)[1]) for m in range(1,month)]
+date_list6 = [FORMAT % (year, m, 1) for m in range(1,month)]
+date_list3 = [FORMAT % (year - 1, n, calendar.monthrange(year - 1, n)[1]) for n in range(month,13)]
+date_list9 = [FORMAT % (year - 1, n, 1) for n in range(month,13)]
 datesta_list = date_list6 + date_list9
 dateend_list = date_list1 + date_list3
 
