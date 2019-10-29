@@ -1064,6 +1064,7 @@ class E(threading.Thread):
         item_all['siteCode'] = info_list[0]
         item_all['siteType'] = info_list[3]
         item_all['siteStatus'] = info_list[6]
+        item_all['franchisetime'] = info_list[18]
         item_all['phone'] = phonelist[10]
         item_all['crawl_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         gLock.release()
