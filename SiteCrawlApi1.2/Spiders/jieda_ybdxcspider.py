@@ -46,6 +46,10 @@ for n in range(month, 13):
     date_list9.append(FORMAT % (year-1, n, 1))
 datesta_list = date_list6 + date_list9
 dateend_list = date_list1 + date_list3
+
+
+
+
 cookie_item = {}
 def jd_login(username,password):
     desired_capabilities = DesiredCapabilities.CHROME  # 修改页面加载策略
