@@ -43,6 +43,7 @@ for n in range(month, 13):
 datesta_list = date_list6 + date_list9
 dateend_list = date_list1 + date_list3
 cookies_item = {}
+
 class CrackSlider():
     def __init__(self):
         super(CrackSlider, self).__init__()
@@ -511,18 +512,9 @@ class L(threading.Thread):
         sta = time.time()
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
-        date_list1 = []
-        date_list6 = []
-        for m in range(1, month):
-            d = calendar.monthrange(year, m)
-            date_list1.append(([year, m, d[1]]))
-        date_list3 = []
-        date_list9 = []
-        for n in range(month, 13):
-            d = calendar.monthrange(year - 1, n)
-            date_list3.append([year - 1, n, d[1]])
-        ywdateend_list = sorted(date_list3+date_list1,reverse=True)
-        # print(ywdateend_list)
+        date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
+        date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
+        ywdateend_list = sorted(date_list1 + date_list3, reverse=True)
 
         sid = int((time.time() * 1000) % 9999 + 1)
 
@@ -693,18 +685,9 @@ class M(threading.Thread):
 
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
-        date_list1 = []
-        date_list6 = []
-        for m in range(1, month):
-            d = calendar.monthrange(year, m)
-            date_list1.append(([year, m, d[1]]))
-        date_list3 = []
-        date_list9 = []
-        for n in range(month, 13):
-            d = calendar.monthrange(year - 1, n)
-            date_list3.append([year - 1, n, d[1]])
-        ywdateend_list = sorted(date_list3+date_list1,reverse=True)
-        print(ywdateend_list)
+        date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
+        date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
+        ywdateend_list = sorted(date_list1 + date_list3, reverse=True)
 
         yjywList = []
         sid = int((time.time() * 1000) % 9999 + 1)
@@ -1270,18 +1253,11 @@ class G(threading.Thread):
     def run(self):
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
-        date_list1 = []
-        date_list6 = []
-        for m in range(1, month):
-            d = calendar.monthrange(year, m)
-            date_list1.append(([year, m, d[1]]))
-        date_list3 = []
-        date_list9 = []
-        for n in range(month, 13):
-            d = calendar.monthrange(year - 1, n)
-            date_list3.append([year - 1, n, d[1]])
-        ywdateend_list = sorted(date_list3 + date_list1, reverse=True)
-        fk_list = []
+        date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
+        date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
+        ywdateend_list = sorted(date_list1 + date_list3,reverse=True)
+
+        fh_list = []
         site_info = json.loads(requests.post(aut_url, headers=cookies_item['jscookies']).text)
         for date in ywdateend_list:
             data_send = {
@@ -1322,15 +1298,15 @@ class G(threading.Thread):
                 'parentChargeItemId': '176',
             }
 
-            fh_item['busiDetailSummaryVo'] = json.loads(
-            requests.post(fhf_url, data=data_send, headers=cookies_item['jscookies']).text)
+            fh_item = json.loads(
+            requests.post(fhf_url, data=data_send, headers=cookies_item['jscookies']).text)['data']
             if len(str(date[1]))<2:
-                fk_item['date'] = "{}-0{}".format(date[0],date[1])
+                fh_item['date'] = "{}-0{}".format(date[0],date[1])
             else:
-                fk_item['date'] = "{}-{}".format(date[0],date[1])
-            fk_list.append(fk_item)
+                fh_item['date'] = "{}-{}".format(date[0],date[1])
+            fh_list.append(fh_item)
         gLock.acquire()
-        item['sendBusiDetailSummaryVo'] = fk_list
+        item['sendfirstBusiDetailSummaryVoList'] = fh_list
         gLock.release()
 
 
@@ -1392,17 +1368,10 @@ class H(threading.Thread):
         sta = time.time()
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
-        date_list1 = []
-        date_list6 = []
-        for m in range(1, month):
-            d = calendar.monthrange(year, m)
-            date_list1.append(([year, m, d[1]]))
-        date_list3 = []
-        date_list9 = []
-        for n in range(month, 13):
-            d = calendar.monthrange(year - 1, n)
-            date_list3.append([year - 1, n, d[1]])
-        ywdateend_list = sorted(date_list3+date_list1,reverse=True)
+        date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
+        date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
+        ywdateend_list = sorted(date_list1 + date_list3, reverse=True)
+
         fk_list = []
         site_info = json.loads(requests.post(aut_url, headers=cookies_item['jscookies']).text)
         for date in ywdateend_list:
@@ -1451,7 +1420,7 @@ class H(threading.Thread):
                 fk_item['date'] = "{}-{}".format(date[0],date[1])
             fk_list.append(fk_item)
         gLock.acquire()
-        item['sendfineBusiDetailSummaryVoList'] = fk_list
+        item['sendfirstfineBusiDetailSummaryVoList'] = fk_list
         gLock.release()
 
 
@@ -1463,18 +1432,10 @@ class I(threading.Thread):
     def run(self):
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
-        date_list1 = []
-        date_list6 = []
-        for m in range(1, month):
-            d = calendar.monthrange(year, m)
-            date_list1.append(([year, m, d[1]]))
+        date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
+        date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
+        ywdateend_list = sorted(date_list1 + date_list3, reverse=True)
 
-        date_list3 = []
-        date_list9 = []
-        for n in range(month, 13):
-            d = calendar.monthrange(year - 1, n)
-            date_list3.append([year - 1, n, d[1]])
-        ywdateend_list = sorted(date_list3+date_list1,reverse=True)
         fk_list = []
         site_info = json.loads(requests.post(aut_url, headers=cookies_item['jscookies']).text)
         for date in ywdateend_list:
@@ -1534,17 +1495,11 @@ class J(threading.Thread):
     def run(self):
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
-        date_list1 = []
-        date_list6 = []
-        for m in range(1, month):
-            d = calendar.monthrange(year, m)
-            date_list1.append(([year, m, d[1]]))
-        date_list3 = []
-        date_list9 = []
-        for n in range(month, 13):
-            d = calendar.monthrange(year - 1, n)
-            date_list3.append([year - 1, n, d[1]])
-        ywdateend_list = sorted(date_list3+date_list1,reverse=True)
+        date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
+        date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
+        ywdateend_list = sorted(date_list1 + date_list3, reverse=True)
+
+        
         fk_list = []
         site_info = json.loads(requests.post(aut_url, headers=cookies_item['jscookies']).text)
         for date in ywdateend_list:
