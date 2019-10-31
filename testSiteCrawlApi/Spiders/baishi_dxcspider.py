@@ -447,9 +447,12 @@ headers_item = {}
 # 登录获取cookies
 def baishi(username, password):
     url = 'https://v5.800best.com/login'
-    opt = webdriver.ChromeOptions()
-    opt.set_headless()
-    driver = webdriver.Chrome(r'/home/xihonglin/Flask/SiteCrawlApi/chromedriver-1', options=opt)
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--start-maximized")
+    chrome_options.add_argument("--headless")
+    driver = webdriver.Chrome(r'/home/xihonglin/Flask/SiteCrawlApi/chromedriver-1', options=chrome_options)
     driver.get(url)
     driver.find_element_by_name('username').clear()
     driver.find_element_by_name('username').send_keys(username)
@@ -711,19 +714,10 @@ class E(threading.Thread):
     def run(self):
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
-        date_list1 = []
-        date_list6 = []
-        for m in range(1, month):
-            d = calendar.monthrange(year, m)
-            date_list1.append(([year, m, d[1]]))
-        date_list3 = []
-        date_list9 = []
-
-        for n in range(month, 13):
-            d = calendar.monthrange(year - 1, n)
-            date_list3.append([year - 1, n, d[1]])
-        ywdateend_list = sorted(date_list3 + date_list1, reverse=True)
-        print(ywdateend_list)
+        date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
+        date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
+        ywdateend_list = sorted(date_list1 + date_list3, reverse=True)
+        
         firAndSecStatementBySo_list = []
         users_pyload = {
             'currentPage': '1',
@@ -792,19 +786,10 @@ class F(threading.Thread):
     def run(self):
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
-        date_list1 = []
-        date_list6 = []
-        for m in range(1, month):
-            d = calendar.monthrange(year, m)
-            date_list1.append(([year, m, d[1]]))
-        date_list3 = []
-        date_list9 = []
-
-        for n in range(month, 13):
-            d = calendar.monthrange(year - 1, n)
-            date_list3.append([year - 1, n, d[1]])
-        ywdateend_list = sorted(date_list3 + date_list1, reverse=True)
-        print(ywdateend_list)
+        date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
+        date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
+        ywdateend_list = sorted(date_list1 + date_list3, reverse=True)
+        
         allStatementBySo_list = []
         users_pyload = {
             'currentPage': '1',

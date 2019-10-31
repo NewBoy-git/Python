@@ -2,15 +2,20 @@ import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+from lxml import etree
 import json
 import datetime
 import calendar
 import binascii
 import requests
 from lxml import etree
+# from HbaseHandler.operateHbase import save_to_hbase
 
 import threading
+
 import re
 
 
@@ -31,7 +36,6 @@ date_list3 = [FORMAT % (year - 1, n, calendar.monthrange(year - 1, n)[1]) for n 
 date_list9 = [FORMAT % (year - 1, n, 1) for n in range(month,13)]
 datesta_list = date_list6 + date_list9
 dateend_list = date_list1 + date_list3
-
 
 
 
@@ -95,7 +99,7 @@ def jd_login(username,password):
             return cookie_item
         else:
             cookie_item['code'] =1
-            with open('/home/xihonglin/Flask/testSiteCrawlApi/Spiders/jdcookie.json', 'w', encoding='utf-8') as f:
+            with open('/home/xihonglin/Flask/testSiteCrawlApi/Spiders/jdcookies.json', 'w', encoding='utf-8') as f:
                 f.write(json.dumps(cookie_item))
             driver.quit()
             return cookie_item
@@ -103,7 +107,7 @@ def jd_login(username,password):
         driver.quit()
         print(e)
         cookie_item['code'] = 1
-        with open('/home/xihonglin/Flask/testSiteCrawlApi/Spiders/jdcookie.json', 'w', encoding='utf-8') as f:
+        with open('/home/xihonglin/Flask/testSiteCrawlApi/Spiders/jdcookies.json', 'w', encoding='utf-8') as f:
             f.write(json.dumps(cookie_item))
         return cookie_item
 
@@ -138,11 +142,12 @@ class A(threading.Thread):
         pattern_search = re.compile(search_body)
         search_code = re.findall(pattern_search,yw_res)[0]
 
+
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
         date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
         date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
-        ywdateend_list = date_list1 + date_list3
+        ywdateend_list = sorted(date_list1 + date_list3,reverse=True)
         print(ywdateend_list)
 
         ps_body = "'zul.wgt.Label','(.*?)',{id:'lblVotes',"
@@ -430,8 +435,7 @@ class B(threading.Thread):
         month = datetime.datetime.now().month
         date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
         date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
-        ywdateend_list = date_list1 + date_list3
-        print(ywdateend_list)
+        ywdateend_list = sorted(date_list1 + date_list3,reverse=True)
 
         ps_body = "'zul.wgt.Label','(.*?)',{id:'lblVotes',"
         js_body = "'zul.wgt.Label','(.*?)',{id:'lblPiece',"
@@ -704,7 +708,7 @@ class C(threading.Thread):
             'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
             'Connection': 'keep-alive',
             'Content-Length': '150',
-            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            'Content-Type': 'application/x-www-forfm-urlencoded;charset=UTF-8',
             'Cookie': cookie_item['cookies_jd'],
             'Host': 'sxne.sxjdfreight.com',
             'Origin': 'http://sxne.sxjdfreight.com',
@@ -791,13 +795,12 @@ class D(threading.Thread):
         enddate_code = re.findall(pattern_end,hzzd_r)[0]
         print('zcfk************************************')
 
+        sta = time.time()
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
         date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
         date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
-        ywdateend_list = date_list1 + date_list3
-        print(ywdateend_list)
-
+        ywdateend_list = sorted(date_list1 + date_list3,reverse=True)
         list = []
         for date in ywdateend_list:
             item = {}
@@ -1071,6 +1074,102 @@ class E(threading.Thread):
 
 
 #网点一级派送费
+# class F(threading.Thread):
+#     def __init__(self):
+#         threading.Thread.__init__(self)
+#     def run(self):
+#         sid = int((time.time() * 1000) % 9999 + 1)
+#         zk_url = 'http://sxne.sxjdfreight.com/zkau'
+#         psf_url = 'http://sxne.sxjdfreight.com/ne1/finance/finance_detail_mgr_mini.zul'
+#         headers = {
+#             'Cookie': cookie_item['cookies_jd'],
+#         }
+#         psf_r = requests.get(psf_url,headers=headers).text
+#         psf = psf_r.replace(r'\\"','"')
+#         # print(psf)
+#         print('yjpsf************************************')
+#
+#         yfkjeBody  = r'"balance":"(.*?)",'
+#         pattern_yfk = re.compile(yfkjeBody)
+#         yfk = re.findall(pattern_yfk,psf)[1]
+#         # print(yfk)
+#
+#         dtid_body = r"id:'.*?',dt:'(.*?)'"
+#         dtid_pattern = re.compile(dtid_body)
+#         dtid_code = re.findall(dtid_pattern,psf_r)[0]
+#
+#         datesta_body = r"'zul.db.Datebox','(.*?)',{format:'yyyy/MM/dd',id:'dtbFinStart',"
+#         datesta_pattern = re.compile(datesta_body)
+#         datesta_code = re.findall(datesta_pattern,psf_r)[0]
+#
+#         dateend_body = r"'zul.db.Datebox','(.*?)',{format:'yyyy/MM/dd',id:'dtbFinEnd'"
+#         dateend_pattern = re.compile(dateend_body)
+#         dateend_code = re.findall(dateend_pattern,psf_r)[0]
+#
+#
+#         datesea_body = r"'zul.wgt.Button','(.*?)',{id:'btnDetailSeach',"
+#         datesea_pattern = re.compile(datesea_body)
+#         datesea_code = re.findall(datesea_pattern,psf_r)[0]
+#
+#         print(dtid_code)
+#         print(datesta_code)
+#         print(dateend_code)
+#         print(datesea_code)
+#
+#         year = datetime.datetime.now().year
+#         month = datetime.datetime.now().month
+#         date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
+#         date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
+#         ywdateend_list = sorted(date_list1 + date_list3,reverse=True)
+#
+#         yjyfkList = []
+#         for date in ywdateend_list:
+#             mon = "{}-{}".format(date[0],date[1])
+#             item = {}
+#             dfkData = {
+#             'dtid':dtid_code,
+#             'cmd_0':'onChange',
+#             'uuid_0':datesta_code,
+#             'data_0':'{"value":"$z!t#d:' + str(date[0]) + '.' + str(date[1]) + '.1.0.0.0.0","start":10}',
+#             'cmd_1':'onChange',
+#             'uuid_1':dateend_code,
+#             'data_1':'{"value":"$z!t#d:' + str(date[0]) + '.' + str(date[1]) + '.' + str(
+#                             date[2]) + '.23.59.59.0","start":10}',
+#             'cmd_2':'onClick',
+#             'uuid_2':datesea_code,
+#             'data_2':'{"pageX":75,"pageY":49,"which":1,"x":62,"y":11}',
+#             }
+#
+#             dfk_headers = {
+#             'Accept':'*/*',
+#             'Accept-Encoding':'gzip, deflate',
+#             'Accept-Language':'zh-CN,zh;q=0.9,en;q=0.8',
+#             'Connection':'keep-alive',
+#             'Content-Length':'361',
+#             'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',
+#             'Cookie': cookie_item['cookies_jd'],
+#             'Host':'sxne.sxjdfreight.com',
+#             'Origin':'http://sxne.sxjdfreight.com',
+#             'Referer':'http://sxne.sxjdfreight.com/ne1/finance/finance_detail_mgr_mini.zul',
+#             'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36',
+#             'ZK-SID':str(sid),
+#             }
+#             sid+=1
+#
+#
+#             dfk_r = requests.post(zk_url,data=dfkData,headers=dfk_headers).text
+#             # print(dfk_r)
+#             dfkBody = r',"value","(.*?)"'
+#             dfkPattern = re.compile(dfkBody)
+#             dfkList = re.findall(dfkPattern,dfk_r)
+#             print(dfkList[1])
+#             item['date'] = mon
+#             item['psf'] = dfkList[1]
+#             yjyfkList.append(item)
+#         gLock.acquire()
+#         item_all['yjpsfList'] = yjyfkList
+#         gLock.release()
+
 class F(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -1081,92 +1180,176 @@ class F(threading.Thread):
         headers = {
             'Cookie': cookie_item['cookies_jd'],
         }
-        psf_r = requests.get(psf_url,headers=headers).text
-        psf = psf_r.replace(r'\\"','"')
-        # print(psf)
-        print('yjpsf************************************')
+        psf_r = requests.get(psf_url, headers=headers).text
+        psf = psf_r.replace(r'\\"', '"')
 
-        yfkjeBody  = r'"balance":"(.*?)",'
+        yfkjeBody = r'"balance":"(.*?)",'
         pattern_yfk = re.compile(yfkjeBody)
-        yfk = re.findall(pattern_yfk,psf)[1]
-        # print(yfk)
+        yfk = re.findall(pattern_yfk, psf)[1]
+        print(yfk)
 
         dtid_body = r"id:'.*?',dt:'(.*?)'"
         dtid_pattern = re.compile(dtid_body)
-        dtid_code = re.findall(dtid_pattern,psf_r)[0]
+        dtid_code = re.findall(dtid_pattern, psf_r)[0]
 
         datesta_body = r"'zul.db.Datebox','(.*?)',{format:'yyyy/MM/dd',id:'dtbFinStart',"
         datesta_pattern = re.compile(datesta_body)
-        datesta_code = re.findall(datesta_pattern,psf_r)[0]
+        datesta_code = re.findall(datesta_pattern, psf_r)[0]
 
         dateend_body = r"'zul.db.Datebox','(.*?)',{format:'yyyy/MM/dd',id:'dtbFinEnd'"
         dateend_pattern = re.compile(dateend_body)
-        dateend_code = re.findall(dateend_pattern,psf_r)[0]
-
+        dateend_code = re.findall(dateend_pattern, psf_r)[0]
 
         datesea_body = r"'zul.wgt.Button','(.*?)',{id:'btnDetailSeach',"
         datesea_pattern = re.compile(datesea_body)
-        datesea_code = re.findall(datesea_pattern,psf_r)[0]
+        datesea_code = re.findall(datesea_pattern, psf_r)[0]
 
-        print(dtid_code)
-        print(datesta_code)
-        print(dateend_code)
-        print(datesea_code)
+        select_body = r"'zul.tab.Tab','(.*?)',{id:'tabFinInfo',"
+        select_pattern = re.compile(select_body)
+        select_code = re.findall(select_pattern, psf_r)[0]
 
+        text_body = r"'zul.inp.Textbox','(.*?)',{id:'chargeTypeTbx',"
+        text_pattern = re.compile(text_body)
+        text_code = re.findall(text_pattern, psf_r)[0]
+
+
+
+        select_data = {
+            'dtid': dtid_code,
+            'cmd_0': 'onSelect',
+            'uuid_0': select_code,
+            'data_0': '{"items":["' + str(select_code) + '"],"reference":"' + str(select_code) + '"}',
+        }
+
+        print('{"items":["' + str(select_code) + '"],"reference":"' + str(select_code) + '"}')
+
+        select_headers = {
+            'Accept': '*/*',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+            'Connection': 'keep-alive',
+            'Content-Length': '115',
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            'Cookie': cookie_item['cookies_jd'],
+            'Host': 'sxne.sxjdfreight.com',
+            'Origin': 'http://sxne.sxjdfreight.com',
+            'Referer': 'http://sxne.sxjdfreight.com/ne1/finance/finance_detail_mgr_mini.zul',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36',
+            'ZK-SID': str(sid),
+        }
+        select_r = requests.post(zk_url, data=select_data, headers=select_headers).text
+        print(select_r)
+
+        clickData = {
+            'dtid': dtid_code,
+            'cmd_0': 'onChanging',
+            'opt_0': 'i',
+            'uuid_0': text_code,
+            'data_0': '{"value":"付派送费","start":4}',
+        }
+
+        click_headers = {
+            'Accept': '*/*',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+            'Connection': 'keep-alive',
+            'Content-Length': '137',
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            'Cookie': cookie_item['cookies_jd'],
+            'Host': 'sxne.sxjdfreight.com',
+            'Origin': 'http://sxne.sxjdfreight.com',
+            'Referer': 'http://sxne.sxjdfreight.com/ne1/finance/finance_detail_mgr_mini.zul',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36',
+            'ZK-SID': str(sid + 1),
+        }
+
+        click_r = requests.post(zk_url, data=clickData, headers=click_headers).text
+        print(click_r)
+
+        text_data = {
+            'dtid': dtid_code,
+            'cmd_0': 'onChange',
+            'uuid_0': text_code,
+            'data_0': '{"value":"付派送费","start":4}',
+            'cmd_1': 'onBlur',
+            'uuid_1': text_code,
+        }
+
+        text_headers = {
+            'Accept': '*/*',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+            'Connection': 'keep-alive',
+            'Content-Length': '154',
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            'Cookie': cookie_item['cookies_jd'],
+            'Host': 'sxne.sxjdfreight.com',
+            'Origin': 'http://sxne.sxjdfreight.com',
+            'Referer': 'http://sxne.sxjdfreight.com/ne1/finance/finance_detail_mgr_mini.zul',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36',
+            'ZK-SID': str(sid + 2),
+        }
+
+        text_r = requests.post(zk_url, data=text_data, headers=text_headers).text
+        print(text_r)
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
         date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
         date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
-        ywdateend_list = date_list1 + date_list3
-        print(ywdateend_list)
+        ywdateend_list = sorted(date_list1 + date_list3, reverse=True)
 
-        yjyfkList = []
+        yjpsfList = []
+        sid = sid + 2
         for date in ywdateend_list:
-            mon = "{}-{}".format(date[0],date[1])
+            sid += 1
+            mon = "{}-{}".format(date[0], date[1])
             item = {}
             dfkData = {
-            'dtid':dtid_code,
-            'cmd_0':'onChange',
-            'uuid_0':datesta_code,
-            'data_0':'{"value":"$z!t#d:' + str(date[0]) + '.' + str(date[1]) + '.1.0.0.0.0","start":10}',
-            'cmd_1':'onChange',
-            'uuid_1':dateend_code,
-            'data_1':'{"value":"$z!t#d:' + str(date[0]) + '.' + str(date[1]) + '.' + str(
-                            date[2]) + '.23.59.59.0","start":10}',
-            'cmd_2':'onClick',
-            'uuid_2':datesea_code,
-            'data_2':'{"pageX":75,"pageY":49,"which":1,"x":62,"y":11}',
+                'dtid': dtid_code,
+                'cmd_0': 'onChange',
+                'uuid_0': datesta_code,
+                'data_0': '{"value":"$z!t#d:' + str(date[0]) + '.' + str(date[1]) + '.1.0.0.0.0","start":10}',
+                'cmd_1': 'onChange',
+                'uuid_1': dateend_code,
+                'data_1': '{"value":"$z!t#d:' + str(date[0]) + '.' + str(date[1]) + '.' + str(
+                    date[2]) + '.23.59.59.0","start":10}',
+                'cmd_2': 'onClick',
+                'uuid_2': datesea_code,
+                'data_2': '{"pageX":75,"pageY":49,"which":1,"x":62,"y":11}',
             }
 
             dfk_headers = {
-            'Accept':'*/*',
-            'Accept-Encoding':'gzip, deflate',
-            'Accept-Language':'zh-CN,zh;q=0.9,en;q=0.8',
-            'Connection':'keep-alive',
-            'Content-Length':'361',
-            'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8',
-            'Cookie': cookie_item['cookies_jd'],
-            'Host':'sxne.sxjdfreight.com',
-            'Origin':'http://sxne.sxjdfreight.com',
-            'Referer':'http://sxne.sxjdfreight.com/ne1/finance/finance_detail_mgr_mini.zul',
-            'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36',
-            'ZK-SID':str(sid),
+                'Accept': '*/*',
+                'Accept-Encoding': 'gzip, deflate',
+                'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+                'Connection': 'keep-alive',
+                'Content-Length': '361',
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                'Cookie': cookie_item['cookies_jd'],
+                'Host': 'sxne.sxjdfreight.com',
+                'Origin': 'http://sxne.sxjdfreight.com',
+                'Referer': 'http://sxne.sxjdfreight.com/ne1/finance/finance_detail_mgr_mini.zul',
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36',
+                'ZK-SID': str(sid),
             }
-            sid+=1
 
-
-            dfk_r = requests.post(zk_url,data=dfkData,headers=dfk_headers).text
-            # print(dfk_r)
-            dfkBody = r',"value","(.*?)"'
+            dfk_r = requests.post(zk_url, data=dfkData, headers=dfk_headers).text
+            print(dfk_r)
+            dfkBody = r'"value",(.*?)]]],'
             dfkPattern = re.compile(dfkBody)
-            dfkList = re.findall(dfkPattern,dfk_r)
-            print(dfkList[1])
-            item['date'] = mon
-            item['psf'] = dfkList[1]
-            yjyfkList.append(item)
-        gLock.acquire()
-        item_all['yjpsfList'] = yjyfkList
-        gLock.release()
+            dfkList = re.findall(dfkPattern, dfk_r)
+            if dfkList != []:
+                item['date'] = mon
+                item['yfk'] = dfkList[0]
+            else:
+                item['date'] = mon
+                item['yfk'] = '0.00'
+            print(item)
+            yjpsfList.append(item)
+            gLock.acquire()
+            item_all['yjpsfList'] = yjpsfList
+            gLock.release()
+
 
 
 #总体派送费
@@ -1272,13 +1455,11 @@ class G(threading.Thread):
         r = requests.post(zk_url, data=site_data, headers=site_headers).text
         # print(r)
         print('ztpsf*******************************************************')
-
         year = datetime.datetime.now().year
         month = datetime.datetime.now().month
         date_list1 = [[year, m, calendar.monthrange(year, m)[1]] for m in range(1, month)]
         date_list3 = [[year - 1, m, calendar.monthrange(year - 1, m)[1]] for m in range(month, 13)]
-        ywdateend_list = date_list1 + date_list3
-        print(ywdateend_list)
+        ywdateend_list = sorted(date_list1 + date_list3,reverse=True)
 
         ztyfkList = []
         for date in ywdateend_list:
