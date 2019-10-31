@@ -12,6 +12,7 @@ from flask import Flask, jsonify, request
 from concurrent.futures import ThreadPoolExecutor
 # from gevent.monkey import patch_all
 
+
 #模块自身包
 from Spiders.ymdd_dxcspider import ymdd_spider,ymddpart
 from Spiders.baishi_dxcspider import baishi_spider
@@ -21,6 +22,7 @@ from Spiders.bdjs import baidu_search
 from Spiders.phone_cap import phone_search
 from Spiders.anlb_dxc_spider import lb_spider,CrackSlider
 from Spiders.jieda_ybdxcspider import jd_login,jd_spider
+import calendar
 
 
 # patch_all()
@@ -406,10 +408,11 @@ def select():
         item['crawlTime'] = result['crawl_time']
         item['accountInfo'] = result['AccountInfo']['data']
         item['busidetailByMonth'] = result['BusiDetailByMonth']
-        item['sendfirstBusiDetailSummaryVo'] = result['sendBusiDetailSummaryVo']['data']
+        item['sendfirstBusiDetailSummaryVo'] = result.get('sendBusiDetailSummaryVo').get('data')
+        item['sendfirstBusiDetailSummaryVoList']  = result.get('sendfirstBusiDetailSummaryVoList')
         #item['receiveBusiDetailSummaryVo'] = result['receiveBusiDetailSummaryVo']
 
-        item['sendfirstfineBusiDetailSummaryVoList'] = result.get('sendfineBusiDetailSummaryVoList')
+        item['sendfirstfineBusiDetailSummaryVoList'] = result.get('sendfirstfineBusiDetailSummaryVoList')
         item['receivefirstfineBusiDetailSummaryVoList'] = result.get('receivefineBusiDetailSummaryVoList')
         item['allfineBusiDetailSummaryVoList'] = result.get('allfineBusiDetailSummaryVoList')
 
