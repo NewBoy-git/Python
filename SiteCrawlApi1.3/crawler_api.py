@@ -53,21 +53,6 @@ def crawl():
                 userid = obj['userId']
                 company = obj['entType']
                 requesttype = obj['requestType']
-
-        #         results = select_before(userid,company)
-        #         if results:
-        #            result = json.loads(results[0].columns.get('info:current').value)
-        #            crawl_time = result['crawl_time']
-        #            timeArray = time.strptime(crawl_time, "%Y-%m-%d %H:%M:%S")
-        #            fir = int(time.mktime(timeArray))
-        #            if sec-fir < 300:
-        #               suc_msg = {
-        #                       "msg":"",
-        #                       "code":0,
-        #                       }
-        #               return jsonify(suc_msg)
-        #         c = CrackSlider()
-        #         data = c.crack_slider(username,password)
                 c = CrackSlider()
                 cookies_item = c.crack_slider(username, password)
                 if requesttype == 'UPGRADE_QUOTA':
@@ -100,24 +85,6 @@ def crawl():
                         print(e)
                         err_msg = {"msg": "", "code": 600}
                         return jsonify(err_msg)
-        #         err_msg = {"msg": "", "code": 600}
-        #         return jsonify(err_msg)
-        #         data = lb_spider(username,password)
-        #         if data['code'] == 600:
-        #            return jsonify(data)
-        #         data['userid'] = userid
-        #         data['company'] = company
-        #         try:
-        #             sta1 = datetime.datetime.now()
-        #             suc_msg = save_to_hbase(userid,company,data)
-        #             end = datetime.datetime.now()
-        #             print('入库总耗时:{}'.format(end-sta1))
-        #             print('流程总耗时:{}'.format(end-sta))
-        #             return jsonify(suc_msg)
-        #         except Exception as e:
-        #             print(e)
-        #             error_hbase = {"msg":"","code":600}
-        #             return jsonify(error_hbase)
 
         if obj['entType'] == 'YI_MI_DI_DA':
                 username = obj['userName']
@@ -133,11 +100,6 @@ def crawl():
                     ymdd_data['userid'] = userid
                     ymdd_data['company'] = company
                     try:
-                        # transport.open()
-                        # row = str(userid)+company
-                        # mutations = [Mutation(column="info:current", value=json.dumps(ymdd_data))]2
-                        # client.mutateRow(table, row, mutations)
-                        # transport.close()
                         save_to_hbase(userid,company,ymdd_data)
                         suc_msg = {
                         "msg":"",
@@ -154,11 +116,6 @@ def crawl():
                     ymdd_data['userid'] = userid
                     ymdd_data['company'] = company
                     try:
-                        # transport.open()
-                        # row = str(userid)+company
-                        # mutations = [Mutation(column="info:current", value=json.dumps(ymdd_data))]2
-                        # client.mutateRow(table, row, mutations)
-                        # transport.close()
                         save_to_hbase(userid, company, ymdd_data)
                         suc_msg = {
                             "msg": "",
@@ -314,15 +271,11 @@ def crawljd(userid,company,requesttype):
                     acquire_status(userid, company, fail_status)
                     print(str(e))
                     print('************************')
-                    # error_hbase = {"msg":"","code":600}
-                    # return jsonify(error_hbase)
                 else:
                     print(str(e))
 
 
-# @copy_current_request_context
-# with app.app_context():
-#     print(app.name)
+
 def crawlan(userid,company,requesttype):
     with app.app_context():
         if requesttype == 'UPGRADE_QUOTA':
@@ -340,8 +293,7 @@ def crawlan(userid,company,requesttype):
                     update_status(userid, company, fail_status)
                     print(str(e))
                     print('************************')
-                    # error_hbase = {"msg":"","code":600}
-                    # return jsonify(error_hbase)
+
                 else:
                     print(str(e))
         else:
@@ -360,8 +312,6 @@ def crawlan(userid,company,requesttype):
                     update_status(userid, company, fail_status)
                     print(str(e))
                     print('************************')
-                    # error_hbase = {"msg":"","code":600}
-                    # return jsonify(error_hbase)
                 else:
                     print(str(e))
 
@@ -377,8 +327,6 @@ def select():
             msg = {'msg':'暂时查询不到该网点信息','code':1}
             return jsonify(msg)
         result = json.loads(results[0].columns.get('info:current').value)
-        # print(result)
-        # print(result['ThismonthendsyesterdayBusiQuery'])
         item = {}
         item['siteName'] = result['site_name']
         item['siteType'] = result['site_type']
@@ -457,7 +405,6 @@ def select():
         item['thismonthendsyesterdayBusiQuery'] = ThismonthendsyesterdayBusiQuery
         item['code']=0
         return jsonify(item)
-        # return jsonify(result)
 
     if 'YI_MI_DI_DA' in userid:
         results = select_from_hbase(userid)
