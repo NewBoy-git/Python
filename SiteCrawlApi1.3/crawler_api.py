@@ -22,7 +22,6 @@ from Spiders.bdjs import baidu_search
 from Spiders.phone_cap import phone_search
 from Spiders.anlb_dxc_spider import lb_spider,CrackSlider
 from Spiders.jieda_ybdxcspider import jd_login,jd_spider
-import calendar
 
 
 # patch_all()
@@ -179,24 +178,6 @@ def crawl():
             userid = obj['userId']
             company = obj['entType']
             requesttype = obj['requestType']
-            # transport.open()
-            # results = client.getRow('crawler:test_logistics_member_info',str(userid)+obj['entType'])
-            # transport.close()
-            results = select_before(userid, company)
-            # if results:
-            #    result = json.loads(results[0].columns.get('info:current').value)
-            #    crawl_time = result.get('crawl_time')
-            #    if crawl_time != None:
-            #       timeArray = time.strptime(crawl_time, "%Y-%m-%d %H:%M:%S")
-            #       fir = int(time.mktime(timeArray))
-            #       if sec-fir < 300:
-            #           print(sec-fir)
-            #           suc_msg = {
-            #                   "msg":"",
-            #                   "code":0,
-            #                   }
-            #           update_status(userid, company, success_status)
-            #           return jsonify(suc_msg)
             baishi_data = baishi_spider(username,password)
             if baishi_data['code'] == 600:
                 return jsonify(baishi_data)
