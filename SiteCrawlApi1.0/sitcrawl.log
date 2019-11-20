@@ -1,9 +1,0 @@
-nohup: 忽略输入
-Traceback (most recent call last):
-  File "crawler_api.py", line 143, in <module>
-    app.run(host='0.0.0.0',port=11007,debug=True ,threaded = True)
-  File "/home/xihonglin/python3/lib/python3.6/site-packages/flask/app.py", line 841, in run
-    run_simple(host, port, self, **options)
-  File "/home/xihonglin/python3/lib/python3.6/site-packages/werkzeug/serving.py", line 717, in run_simple
-    s.bind((hostname, port))
-OSError: [Errno 98] Address already in use
